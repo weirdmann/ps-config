@@ -48,7 +48,7 @@ Po instalacji zamknij wszystkie okna Windows Terminal i uruchom go ponownie.
 - Ctrl+T: wyszukiwanie i wstawianie ścieżek przez fzf.
 - Alt+C: wyszukiwanie katalogu przez fzf i przejście do niego.
 - Strzałki góra/dół: wyszukiwanie historii według wpisanego początku.
-- Sugestie PSReadLine: historia lokalna, widok inline.
+- Sugestie PSReadLine: historia lokalna, widok listy (ListView), tryb edycji Windows.
 - `gcom "opis"`: `git add -- .`, następnie commit. Uwzględnia także pliki już w stagingu.
 - `lazyg "opis"`: jak `gcom`, a po udanym commicie push do skonfigurowanego upstreamu.
 - `which git`: definicja lub ścieżka polecenia.

@@ -9,7 +9,9 @@ if (Get-Module -ListAvailable -Name Terminal-Icons) {
 # Redirected shells (CI, scripts, agents) do not have an interactive console.
 if ($Host.Name -eq 'ConsoleHost' -and -not [Console]::IsInputRedirected -and -not [Console]::IsOutputRedirected) {
     Import-Module PSReadLine
-    Set-PSReadLineOption -EditMode Windows -PredictionSource History -PredictionViewStyle InlineView
+    Set-PSReadLineOption -PredictionSource History
+    Set-PSReadLineOption -PredictionViewStyle ListView
+    Set-PSReadLineOption -EditMode Windows
     Set-PSReadLineOption -HistorySearchCursorMovesToEnd
     Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
     Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
