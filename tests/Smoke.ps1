@@ -43,7 +43,7 @@ $updated = $firstTerminal | ConvertFrom-Json -AsHashtable
 Assert ($updated.copyOnSelect -and $updated.profiles.defaults.opacity -eq 80) 'Unrelated settings changed.'
 Assert ($updated.profiles.list[1].colorScheme -eq 'Other') 'Other profile changed.'
 Assert ($updated.profiles.list[0].font.size -eq 12) 'Existing font size changed.'
-Assert ($updated.profiles.list[0].font.face -eq 'AtkynsonMono Nerd Font') 'Wrong font.'
+Assert ($updated.profiles.list[0].font.face -eq 'AtkynsonMono NF') 'Wrong font.'
 Assert ($updated.profiles.list[0].colorScheme -eq 'Campbell') 'Wrong palette.'
 Assert (-not $updated.profiles.list[0].Contains('background')) 'Color override remains.'
 Assert (@(Get-ChildItem (Join-Path $testRoot 'installed/backups') -Directory).Count -eq 2) 'Backups missing.'

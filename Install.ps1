@@ -2,7 +2,7 @@
 [CmdletBinding()]
 param(
     [switch]$SkipDependencies,
-    [string]$ConfigHome = (Join-Path $env:LOCALAPPDATA 'ps-config'),
+    [string]$ConfigHome = (Join-Path $env:USERPROFILE '.config/ps-config'),
     [string]$ProfilePath = $PROFILE.CurrentUserCurrentHost,
     [string]$TerminalSettingsPath
 )

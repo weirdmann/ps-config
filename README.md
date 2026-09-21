@@ -20,14 +20,16 @@ cd ps-config
 
 Instalator dodaje Scoop, jeśli go brakuje, i instaluje `oh-my-posh` oraz
 `AtkinsonHyperlegibleMono-NF` z bucketu `nerd-fonts`. Nazwa rodziny fontu widoczna
-w Windows to `AtkynsonMono Nerd Font`. Moduły PSReadLine i Terminal-Icons
+w Windows to `AtkynsonMono NF`. Moduły PSReadLine i Terminal-Icons
 instaluje z PSGallery w zakresie bieżącego użytkownika. Politykę wykonywania
 zmienia na `RemoteSigned` dla użytkownika tylko wtedy, gdy istniejąca blokuje Scoop.
 
-Pliki profilu kopiuje do `%LOCALAPPDATA%\ps-config`, a w `$PROFILE` umieszcza
+Pliki profilu kopiuje do `%USERPROFILE%\.config\ps-config`, a w `$PROFILE` umieszcza
 oznaczony blok ładujący. Kopię istniejących ustawień terminala i profilu zapisuje
-w `%LOCALAPPDATA%\ps-config\backups\<data>`. Prywatne ustawienia, kopie i historia
+w `%USERPROFILE%\.config\ps-config\backups\<data>`. Prywatne ustawienia, kopie i historia
 poleceń nie trafiają do repozytorium. Kopia instalacji działa niezależnie od klona.
+Katalog poza AppData działa także z PowerShell instalowanym przez Microsoft Store,
+który może korzystać z wirtualizowanego AppData.
 
 Windows Terminal otrzymuje font i Campbell w ustawieniach domyślnych oraz
 profilach PowerShell 7; PowerShell 7 staje się domyślnym profilem. Nadpisania

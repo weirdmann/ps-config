@@ -37,6 +37,7 @@ foreach ($package in @('oh-my-posh', $config.fontPackage)) {
         throw "Package $package was not installed."
     }
 }
+& (Join-Path $PSScriptRoot 'Register-Fonts.ps1')
 # Avoid changing the trust policy for the entire PowerShell Gallery.
 foreach ($module in @('PSReadLine', 'Terminal-Icons')) {
     Install-Module -Name $module -Repository PSGallery -Scope CurrentUser -Force -AllowClobber
