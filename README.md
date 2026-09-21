@@ -24,7 +24,8 @@ Instalator dodaje Scoop, jeśli go brakuje, i instaluje `oh-my-posh`, `fzf`, `ez
 `zoxide`, `bat`, `lazygit` (bucket `extras`), `delta`, `btop`, `less` oraz
 `AtkinsonHyperlegibleMono-NF` z bucketu `nerd-fonts`. Nazwa rodziny fontu widoczna
 w Windows to `AtkynsonMono NF`. Moduły PSReadLine, Terminal-Icons, posh-git i PSFzf
-instaluje z PSGallery w zakresie bieżącego użytkownika. Politykę wykonywania
+instaluje z PSGallery w zakresie bieżącego użytkownika tylko wtedy, gdy ich brakuje.
+Aktualizacje są osobnym krokiem opisanym niżej. Politykę wykonywania
 zmienia na `RemoteSigned` dla użytkownika tylko wtedy, gdy istniejąca blokuje Scoop.
 
 Pliki profilu kopiuje do `%USERPROFILE%\.config\ps-config`, a w `$PROFILE` umieszcza
@@ -34,8 +35,8 @@ poleceń nie trafiają do repozytorium. Kopia instalacji działa niezależnie od
 Katalog poza AppData działa także z PowerShell instalowanym przez Microsoft Store,
 który może korzystać z wirtualizowanego AppData.
 
-Windows Terminal otrzymuje font i Campbell w ustawieniach domyślnych oraz
-profilach PowerShell 7; PowerShell 7 staje się domyślnym profilem. Nadpisania
+Windows Terminal otrzymuje font i Campbell w ustawieniach domyślnych;
+profile PowerShell 7 dziedziczą je bez powielania. PowerShell 7 staje się domyślnym profilem. Nadpisania
 kolorów w tych profilach są usuwane, aby obowiązywała paleta Campbell. Rozmiar
 fontu, przezroczystość, skróty i pozostałe profile zachowują swoje ustawienia.
 JSON jest ponownie formatowany, a komentarze pomijane; oryginał jest w kopii.
@@ -74,6 +75,8 @@ a `Get-ChildItem -` + Tab wybrać parametr. Fzf filtruje propozycje dostarczone
 przez PowerShell i posh-git; inne programy mogą wymagać własnych completerów.
 Jeśli brakuje fzf lub PSFzf, Tab zachowuje zwykłe menu PSReadLine.
 Integracja uruchamia się tylko w sesjach interaktywnych; Oh My Posh nadal rysuje prompt.
+Terminal-Icons obsługuje `Get-ChildItem`/`gci`, a posh-git uzupełnia polecenia Git;
+nie zastępują odpowiednio eza ani segmentu Git w Oh My Posh.
 Pomoc F1 dotyczy wiersza poleceń; fzf, lazygit i btop mają własne skróty wewnątrz
 aplikacji. Sam Ctrl nie jest wyzwalaczem pomocy. F1 zastępuje domyślną pomoc
 kontekstową PowerShella; `Get-Help` pozostaje dostępne. W fzf można nawigować

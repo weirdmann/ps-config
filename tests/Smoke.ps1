@@ -20,8 +20,9 @@ $original = @{
     profiles = @{
         defaults = @{ font = @{ size = 15 }; opacity = 80 }
         list = @(
-            @{ guid = '{test-pwsh}'; source = 'Windows.Terminal.PowershellCore'; background = '#112233'; font = @{ size = 12 } },
-            @{ guid = '{test-cmd}'; name = 'CMD'; colorScheme = 'Other' }
+            @{ guid = '{test-pwsh}'; source = 'Windows.Terminal.PowershellCore'; background = '#112233'; colorScheme = 'Other'; font = @{ size = 12; face = 'Old'; weight = 400 } },
+            @{ guid = '{test-cmd}'; name = 'CMD'; colorScheme = 'Other' },
+            @{ guid = '{test-pwsh-empty-font}'; commandline = 'pwsh.exe'; font = @{ face = 'Old'; weight = 400 } }
         )
     }
 }
@@ -43,9 +44,14 @@ $updated = $firstTerminal | ConvertFrom-Json -AsHashtable
 Assert ($updated.copyOnSelect -and $updated.profiles.defaults.opacity -eq 80) 'Unrelated settings changed.'
 Assert ($updated.profiles.list[1].colorScheme -eq 'Other') 'Other profile changed.'
 Assert ($updated.profiles.list[0].font.size -eq 12) 'Existing font size changed.'
-Assert ($updated.profiles.list[0].font.face -eq 'AtkynsonMono NF') 'Wrong font.'
-Assert ($updated.profiles.list[0].colorScheme -eq 'Campbell') 'Wrong palette.'
+Assert ($updated.profiles.defaults.font.face -eq 'AtkynsonMono NF') 'Wrong default font.'
+Assert ($updated.profiles.defaults.font.weight -eq 600) 'Wrong default font weight.'
+Assert ($updated.profiles.defaults.colorScheme -eq 'Campbell') 'Wrong default palette.'
+Assert (-not $updated.profiles.list[0].font.Contains('face')) 'Redundant font override remains.'
+Assert (-not $updated.profiles.list[0].font.Contains('weight')) 'Redundant font weight remains.'
+Assert (-not $updated.profiles.list[0].Contains('colorScheme')) 'Redundant palette override remains.'
 Assert (-not $updated.profiles.list[0].Contains('background')) 'Color override remains.'
+Assert (-not $updated.profiles.list[2].Contains('font')) 'Empty font override remains.'
 Assert (@(Get-ChildItem (Join-Path $testRoot 'installed/backups') -Directory).Count -eq 2) 'Backups missing.'
 . (Join-Path $root 'functions.ps1')
 $script:gitCalls = [Collections.Generic.List[string]]::new()

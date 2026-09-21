@@ -1,21 +1,12 @@
 # PowerShell 7 user profile. Loaded from a local installed copy of ps-config.
-$psConfig = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'config.json') -Raw | ConvertFrom-Json
 . (Join-Path $PSScriptRoot 'functions.ps1')
-
-if (Get-Module -ListAvailable -Name Terminal-Icons) {
-    Import-Module Terminal-Icons
-}
 
 # Redirected shells (CI, scripts, agents) do not have an interactive console.
 if ($Host.Name -eq 'ConsoleHost' -and -not [Console]::IsInputRedirected -and -not [Console]::IsOutputRedirected) {
     Import-Module PSReadLine
-    Set-PSReadLineOption -PredictionSource History
-    Set-PSReadLineOption -PredictionViewStyle ListView
-    Set-PSReadLineOption -EditMode Windows
-    Set-PSReadLineOption -HistorySearchCursorMovesToEnd
+    Set-PSReadLineOption -PredictionSource History -PredictionViewStyle ListView -EditMode Windows -HistorySearchCursorMovesToEnd
     Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
     Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
-    Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
     Set-PSReadLineKeyHandler -Key F1 -Function ShowKeyBindings
     Set-PSReadLineKeyHandler -Key 'Ctrl+Alt+k' -Function WhatIsKey
     Set-Alias -Name keys -Value Show-PromptKeys -Scope Global -Force
@@ -42,15 +33,20 @@ if ($Host.Name -eq 'ConsoleHost' -and -not [Console]::IsInputRedirected -and -no
     if (Get-Command bat -ErrorAction SilentlyContinue) {
         $env:BAT_PAGER = 'less -R'
     }
-    if (Get-Module -ListAvailable -Name posh-git) {
-        Import-Module posh-git
+    foreach ($moduleName in @('Terminal-Icons', 'posh-git')) {
+        if (Get-Module -ListAvailable -Name $moduleName) {
+            Import-Module $moduleName
+        }
     }
     if ((Get-Command fzf -ErrorAction SilentlyContinue) -and (Get-Module -ListAvailable -Name PSFzf)) {
         Import-Module PSFzf
         Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r' -PSReadlineChordSetLocation 'Alt+c'
         Set-PSReadLineKeyHandler -Key Tab -BriefDescription 'FzfTabCompletion' -Description 'Wybierz uzupelnienie przez fzf' -ScriptBlock { Invoke-FzfTabCompletion }
+    } else {
+        Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
     }
 
+    $psConfig = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'config.json') -Raw | ConvertFrom-Json
     $poshCommand = Get-Command oh-my-posh -ErrorAction SilentlyContinue
     if (-not $poshCommand) {
         $poshPath = Join-Path $scoopRoot 'apps/oh-my-posh/current/oh-my-posh.exe'
@@ -71,5 +67,5 @@ if ($Host.Name -eq 'ConsoleHost' -and -not [Console]::IsInputRedirected -and -no
             Set-Alias -Name Set-PoshContext -Value Update-PsConfigDirectory -Scope Global -Force
         }
     }
+    Remove-Variable psConfig, moduleName, scoopRoot, scoopShims, poshCommand, poshPath, themeRoots, themePath -ErrorAction SilentlyContinue
 }
-Remove-Variable psConfig -ErrorAction SilentlyContinue

@@ -41,11 +41,13 @@ if ($pwshProfile.Count -eq 0) {
     $pwshProfile = @($newProfile)
 }
 foreach ($entry in $pwshProfile) {
-    if (-not $entry.font) { $entry.font = @{} }
-    $entry.font.face = $config.fontFace
-    $entry.font.weight = $config.fontWeight
-    $entry.colorScheme = $config.colorScheme
-    foreach ($key in @('background', 'foreground', 'selectionBackground', 'cursorColor')) {
+    # Inherit shared appearance instead of keeping a second copy per profile.
+    if ($entry.font) {
+        $entry.font.Remove('face')
+        $entry.font.Remove('weight')
+        if ($entry.font.Count -eq 0) { $entry.Remove('font') }
+    }
+    foreach ($key in @('colorScheme', 'background', 'foreground', 'selectionBackground', 'cursorColor')) {
         $entry.Remove($key)
     }
 }

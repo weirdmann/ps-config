@@ -19,7 +19,10 @@ if (-not (Test-Path -LiteralPath $scoop)) {
         if (-not (Test-Path -LiteralPath $scoop)) { throw 'Scoop shim was not created.' }
     }
 }
-$env:PATH = (Join-Path $scoopRoot 'shims') + ';' + $env:PATH
+$scoopShims = Join-Path $scoopRoot 'shims'
+if (($env:PATH -split ';') -notcontains $scoopShims) {
+    $env:PATH = $scoopShims + ';' + $env:PATH
+}
 
 function Invoke-Scoop {
     param([string[]]$Arguments)
@@ -43,6 +46,8 @@ foreach ($package in @('oh-my-posh', 'fzf', 'eza', 'zoxide', 'bat', 'lazygit', '
 & (Join-Path $PSScriptRoot 'Register-Fonts.ps1')
 # Avoid changing the trust policy for the entire PowerShell Gallery.
 foreach ($module in @('PSReadLine', 'Terminal-Icons', 'posh-git', 'PSFzf')) {
-    Install-Module -Name $module -Repository PSGallery -Scope CurrentUser -Force -AllowClobber
+    if (-not (Get-Module -ListAvailable -Name $module)) {
+        Install-Module -Name $module -Repository PSGallery -Scope CurrentUser -Force -AllowClobber
+    }
 }
 Write-Host 'Dependencies installed for the current user.'
