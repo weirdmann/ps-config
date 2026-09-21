@@ -15,8 +15,22 @@ if ($Host.Name -eq 'ConsoleHost' -and -not [Console]::IsInputRedirected -and -no
     Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
     Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
 
-    $poshCommand = Get-Command oh-my-posh -ErrorAction SilentlyContinue
     $scoopRoot = if ($env:SCOOP) { $env:SCOOP } else { Join-Path $env:USERPROFILE 'scoop' }
+    # An already-open terminal may not yet have Scoop's newly installed shims in PATH.
+    $scoopShims = Join-Path $scoopRoot 'shims'
+    if ((Test-Path -LiteralPath $scoopShims) -and ($env:PATH -split ';') -notcontains $scoopShims) {
+        $env:PATH = $scoopShims + ';' + $env:PATH
+    }
+    if (Get-Module -ListAvailable -Name posh-git) {
+        Import-Module posh-git
+    }
+    if ((Get-Command fzf -ErrorAction SilentlyContinue) -and (Get-Module -ListAvailable -Name PSFzf)) {
+        Import-Module PSFzf
+        Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r' -PSReadlineChordSetLocation 'Alt+c'
+        Set-PSReadLineKeyHandler -Key Tab -ScriptBlock { Invoke-FzfTabCompletion }
+    }
+
+    $poshCommand = Get-Command oh-my-posh -ErrorAction SilentlyContinue
     if (-not $poshCommand) {
         $poshPath = Join-Path $scoopRoot 'apps/oh-my-posh/current/oh-my-posh.exe'
         if (Test-Path -LiteralPath $poshPath) { $poshCommand = Get-Command $poshPath }

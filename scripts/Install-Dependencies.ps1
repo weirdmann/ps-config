@@ -29,7 +29,7 @@ function Invoke-Scoop {
 if (-not (Test-Path (Join-Path $scoopRoot 'buckets/nerd-fonts'))) {
     Invoke-Scoop -Arguments @('bucket', 'add', 'nerd-fonts', 'https://github.com/matthewjberger/scoop-nerd-fonts')
 }
-foreach ($package in @('oh-my-posh', $config.fontPackage)) {
+foreach ($package in @('oh-my-posh', 'fzf', $config.fontPackage)) {
     if (-not (Test-Path (Join-Path $scoopRoot "apps/$package/current"))) {
         Invoke-Scoop -Arguments @('install', $package)
     }
@@ -39,7 +39,7 @@ foreach ($package in @('oh-my-posh', $config.fontPackage)) {
 }
 & (Join-Path $PSScriptRoot 'Register-Fonts.ps1')
 # Avoid changing the trust policy for the entire PowerShell Gallery.
-foreach ($module in @('PSReadLine', 'Terminal-Icons')) {
+foreach ($module in @('PSReadLine', 'Terminal-Icons', 'posh-git', 'PSFzf')) {
     Install-Module -Name $module -Repository PSGallery -Scope CurrentUser -Force -AllowClobber
 }
 Write-Host 'Dependencies installed for the current user.'

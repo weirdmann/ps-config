@@ -1,7 +1,8 @@
 # ps-config
 
 Konfiguracja PowerShell 7 dla Windows: **AtkynsonMono Nerd Font**, paleta
-**Campbell**, waga fontu **SemiBold (600)**, Oh My Posh z motywem **craver**, Terminal-Icons i PSReadLine.
+**Campbell**, waga fontu **SemiBold (600)**, Oh My Posh z motywem **craver**,
+Terminal-Icons, PSReadLine oraz uzupełnianie przez **fzf + PSFzf + posh-git**.
 
 Inspiracja: [poradnik Anita Jha](https://dev.to/anitkrjha/elevate-your-windows-powershell-my-personal-customization-guide-5gf6).
 Campbell określa kolory Windows Terminal; craver określa wygląd promptu.
@@ -18,9 +19,9 @@ cd ps-config
 .\Install.ps1
 ```
 
-Instalator dodaje Scoop, jeśli go brakuje, i instaluje `oh-my-posh` oraz
+Instalator dodaje Scoop, jeśli go brakuje, i instaluje `oh-my-posh`, `fzf` oraz
 `AtkinsonHyperlegibleMono-NF` z bucketu `nerd-fonts`. Nazwa rodziny fontu widoczna
-w Windows to `AtkynsonMono NF`. Moduły PSReadLine i Terminal-Icons
+w Windows to `AtkynsonMono NF`. Moduły PSReadLine, Terminal-Icons, posh-git i PSFzf
 instaluje z PSGallery w zakresie bieżącego użytkownika. Politykę wykonywania
 zmienia na `RemoteSigned` dla użytkownika tylko wtedy, gdy istniejąca blokuje Scoop.
 
@@ -42,13 +43,23 @@ Po instalacji zamknij wszystkie okna Windows Terminal i uruchom go ponownie.
 
 ## Używanie
 
-- Tab: menu uzupełniania poleceń.
+- Tab: wyszukiwanie propozycji uzupełniania przez fzf (polecenia, parametry, ścieżki i Git).
+- Ctrl+R: wyszukiwanie historii przez fzf; wybór wstawia polecenie bez jego wykonania.
+- Ctrl+T: wyszukiwanie i wstawianie ścieżek przez fzf.
+- Alt+C: wyszukiwanie katalogu przez fzf i przejście do niego.
 - Strzałki góra/dół: wyszukiwanie historii według wpisanego początku.
 - Sugestie PSReadLine: historia lokalna, widok inline.
 - `gcom "opis"`: `git add -- .`, następnie commit. Uwzględnia także pliki już w stagingu.
 - `lazyg "opis"`: jak `gcom`, a po udanym commicie push do skonfigurowanego upstreamu.
 - `which git`: definicja lub ścieżka polecenia.
 - `whichdir git`: katalog pliku wykonywalnego lub modułu; funkcja bez pliku zgłasza błąd.
+
+W menu fzf wpisz fragment nazwy, wybierz strzałkami i zatwierdź Enterem;
+Esc anuluje wybór. Na przykład `git switch ` + Tab pozwala wybrać gałąź,
+a `Get-ChildItem -` + Tab wybrać parametr. Fzf filtruje propozycje dostarczone
+przez PowerShell i posh-git; inne programy mogą wymagać własnych completerów.
+Jeśli brakuje fzf lub PSFzf, Tab zachowuje zwykłe menu PSReadLine.
+Integracja uruchamia się tylko w sesjach interaktywnych; Oh My Posh nadal rysuje prompt.
 
 `gcom` i `lazyg` dodają wszystkie zmiany pod bieżącym katalogiem — sprawdź
 `git status` przed użyciem. Błąd dodawania/commita przerywa dalsze operacje.
@@ -74,8 +85,8 @@ folder `#343434`, Git `#484848`, .NET `#5C5C5C`, status `#707070`.
 Czas wykonania ma przezroczyste tło i szary tekst oraz ikonę `#808080`.
 
 ```powershell
-scoop update oh-my-posh AtkinsonHyperlegibleMono-NF
-Install-Module PSReadLine, Terminal-Icons -Scope CurrentUser -Force
+scoop update oh-my-posh fzf AtkinsonHyperlegibleMono-NF
+Install-Module PSReadLine, Terminal-Icons, PSFzf, posh-git -Scope CurrentUser -Force
 ```
 
 ## Cofnięcie konfiguracji
