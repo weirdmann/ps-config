@@ -69,6 +69,10 @@ Aktualizacja Oh My Posh nie nadpisuje tej poprawki. Inne motywy są wyszukiwane
 także w aktualnej instalacji Oh My Posh (`current`). Motyw bazuje na upstream
 craver; jego licencja znajduje się w `themes/LICENSE`.
 
+Kolory promptu: Windows ma pomarańczowe tło `#E88624`, godzina `#242424`,
+folder `#343434`, Git `#484848`, .NET `#5C5C5C`, status `#707070`.
+Czas wykonania ma przezroczyste tło i szary tekst oraz ikonę `#808080`.
+
 ```powershell
 scoop update oh-my-posh AtkinsonHyperlegibleMono-NF
 Install-Module PSReadLine, Terminal-Icons -Scope CurrentUser -Force
