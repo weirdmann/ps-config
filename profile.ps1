@@ -23,6 +23,11 @@ if ($Host.Name -eq 'ConsoleHost' -and -not [Console]::IsInputRedirected -and -no
     if ((Test-Path -LiteralPath $scoopShims) -and ($env:PATH -split ';') -notcontains $scoopShims) {
         $env:PATH = $scoopShims + ';' + $env:PATH
     }
+    if (Get-Command eza.exe -ErrorAction SilentlyContinue) {
+        Set-Alias -Name ls -Value Show-EzaList -Scope Global -Force
+        Set-Alias -Name la -Value Show-EzaDetails -Scope Global -Force
+        Set-Alias -Name tr -Value Show-EzaTree -Scope Global -Force
+    }
     if (Get-Module -ListAvailable -Name posh-git) {
         Import-Module posh-git
     }

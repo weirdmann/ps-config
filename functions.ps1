@@ -1,3 +1,16 @@
+function Show-EzaList {
+    # Forward arguments unchanged, including paths with spaces and native flags.
+    eza.exe --oneline --group-directories-first --icons=auto @args
+}
+
+function Show-EzaDetails {
+    eza.exe --long --all --header --group --binary --links --classify=auto --group-directories-first --icons=auto @args
+}
+
+function Show-EzaTree {
+    eza.exe --tree --level=2 --long --binary --group-directories-first --icons=auto @args
+}
+
 function gcom {
     <# .SYNOPSIS
     Stage changes in the current directory and commit. Stops on any Git error.

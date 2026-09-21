@@ -2,7 +2,7 @@
 
 Konfiguracja PowerShell 7 dla Windows: **AtkynsonMono Nerd Font**, paleta
 **Campbell**, waga fontu **SemiBold (600)**, Oh My Posh z motywem **craver**,
-Terminal-Icons, PSReadLine oraz uzupełnianie przez **fzf + PSFzf + posh-git**.
+Terminal-Icons, PSReadLine, listy plików przez **eza** oraz uzupełnianie przez **fzf + PSFzf + posh-git**.
 
 Inspiracja: [poradnik Anita Jha](https://dev.to/anitkrjha/elevate-your-windows-powershell-my-personal-customization-guide-5gf6).
 Campbell określa kolory Windows Terminal; craver określa wygląd promptu.
@@ -19,7 +19,7 @@ cd ps-config
 .\Install.ps1
 ```
 
-Instalator dodaje Scoop, jeśli go brakuje, i instaluje `oh-my-posh`, `fzf` oraz
+Instalator dodaje Scoop, jeśli go brakuje, i instaluje `oh-my-posh`, `fzf`, `eza` oraz
 `AtkinsonHyperlegibleMono-NF` z bucketu `nerd-fonts`. Nazwa rodziny fontu widoczna
 w Windows to `AtkynsonMono NF`. Moduły PSReadLine, Terminal-Icons, posh-git i PSFzf
 instaluje z PSGallery w zakresie bieżącego użytkownika. Politykę wykonywania
@@ -43,6 +43,9 @@ Po instalacji zamknij wszystkie okna Windows Terminal i uruchom go ponownie.
 
 ## Używanie
 
+- `ls`: eza, jeden wpis na wiersz, ikony, katalogi pierwsze.
+- `la`: eza, szczegółowa tabela z nagłówkami i ukrytymi plikami.
+- `tr`: eza, szczegółowe drzewo do dwóch poziomów.
 - Tab: wyszukiwanie propozycji uzupełniania przez fzf (polecenia, parametry, ścieżki i Git).
 - Ctrl+R: wyszukiwanie historii przez fzf; wybór wstawia polecenie bez jego wykonania.
 - Ctrl+T: wyszukiwanie i wstawianie ścieżek przez fzf.
@@ -60,6 +63,14 @@ a `Get-ChildItem -` + Tab wybrać parametr. Fzf filtruje propozycje dostarczone
 przez PowerShell i posh-git; inne programy mogą wymagać własnych completerów.
 Jeśli brakuje fzf lub PSFzf, Tab zachowuje zwykłe menu PSReadLine.
 Integracja uruchamia się tylko w sesjach interaktywnych; Oh My Posh nadal rysuje prompt.
+
+Skróty eza przyjmują ścieżki i dodatkowe opcje, np. `la "C:\Program Files"`
+lub `ls --all`. Kolory i ikony są automatyczne: widoczne w terminalu,
+pomijane przy przekierowaniu do pliku. Skróty `ls`, `la`, `tr` są ustawiane
+tylko w sesjach interaktywnych i gdy eza jest dostępne. Zwracają tekst;
+do potoków obiektowych i parametrów PowerShell (`-Recurse`, `-Force`) używaj
+`Get-ChildItem` lub `gci`. W sesjach interaktywnych `ls` przyjmuje opcje eza,
+a nie parametry `Get-ChildItem`.
 
 `gcom` i `lazyg` dodają wszystkie zmiany pod bieżącym katalogiem — sprawdź
 `git status` przed użyciem. Błąd dodawania/commita przerywa dalsze operacje.
@@ -85,7 +96,7 @@ folder `#343434`, Git `#484848`, .NET `#5C5C5C`, status `#707070`.
 Czas wykonania ma przezroczyste tło i szary tekst oraz ikonę `#808080`.
 
 ```powershell
-scoop update oh-my-posh fzf AtkinsonHyperlegibleMono-NF
+scoop update oh-my-posh fzf eza AtkinsonHyperlegibleMono-NF
 Install-Module PSReadLine, Terminal-Icons, PSFzf, posh-git -Scope CurrentUser -Force
 ```
 
