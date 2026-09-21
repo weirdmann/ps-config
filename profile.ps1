@@ -61,7 +61,11 @@ if ($Host.Name -eq 'ConsoleHost' -and -not [Console]::IsInputRedirected -and -no
         Join-Path $_ ($psConfig.promptTheme + '.omp.json')
     } | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
     if ($poshCommand -and $themePath) {
-        & $poshCommand.Source init pwsh --config $themePath | Invoke-Expression
+        # Clean up the old module before reloading the profile and its key handlers.
+        Get-Module -Name oh-my-posh-core | Remove-Module -Force
+        # Cached init scripts can retain feature flags from an older theme.
+        # --print generates fresh initialization, including transient prompt support.
+        & $poshCommand.Source init pwsh --config $themePath --print | Out-String | Invoke-Expression
         if (Get-Command zoxide -ErrorAction SilentlyContinue) {
             zoxide init powershell --hook none | Out-String | Invoke-Expression
             Set-Alias -Name Set-PoshContext -Value Update-PsConfigDirectory -Scope Global -Force

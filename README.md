@@ -120,6 +120,11 @@ po aktywacji środowiska). Kubernetes pokazuje kontekst z lokalnego kubeconfig,
 jeżeli jest skonfigurowany, a SSH nazwę użytkownika i hosta w sesji SSH.
 Konfiguracja nie instaluje Node, Pythona, kubectl ani serwera SSH.
 Transient prompt skraca poprzedni pasek do szarego `❯` po zatwierdzeniu polecenia.
+Po aktualizacji wczytaj profil ponownie (`. $PROFILE`) lub otwórz nową kartę.
+Profil inicjalizuje Oh My Posh z `--print`, aby nie używać starego cache inicjalizacji,
+i usuwa poprzedni moduł przed ponownym załadowaniem. Dzięki temu zmiany motywu
+(w tym włączenie transient prompt) obowiązują również w już otwartej sesji.
+Paski pozostawione wcześniej w historii terminala nie zmienią się wstecz.
 
 ```powershell
 scoop update oh-my-posh fzf eza zoxide bat lazygit delta btop less AtkinsonHyperlegibleMono-NF
@@ -143,6 +148,10 @@ pwsh -NoProfile -File .\tests\Smoke.ps1
 Testy działają w `.local/`, nie zmieniają prawdziwego profilu ani terminala.
 Sprawdzają składnię, dwukrotną instalację z kopią zapasową i zachowanie istniejących
 ustawień oraz przerwanie `lazyg` po nieudanym commicie.
+
+Integrację promptu sprawdź osobno w interaktywnym terminalu z zainstalowanymi
+zależnościami: `pwsh -NoProfile -File .\tests\Prompt.ps1`.
+Test kontroluje włączenie transient prompt i skróty po trzykrotnym wczytaniu profilu.
 
 Dokumentacja: [Oh My Posh](https://ohmyposh.dev/docs/installation/windows),
 [Nerd Fonts](https://www.nerdfonts.com/font-downloads),
