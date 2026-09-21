@@ -1,0 +1,14 @@
+name: Check PowerShell configuration
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test installer without changing user settings
+        shell: pwsh
+        run: pwsh -NoProfile -File ./tests/Smoke.ps1
