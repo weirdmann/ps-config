@@ -1,7 +1,7 @@
 # ps-config
 
 Konfiguracja PowerShell 7 dla Windows: **AtkynsonMono Nerd Font**, paleta
-**Campbell**, Oh My Posh z motywem **craver**, Terminal-Icons i PSReadLine.
+**Campbell**, waga fontu **SemiBold (600)**, Oh My Posh z motywem **craver**, Terminal-Icons i PSReadLine.
 
 Inspiracja: [poradnik Anita Jha](https://dev.to/anitkrjha/elevate-your-windows-powershell-my-personal-customization-guide-5gf6).
 Campbell określa kolory Windows Terminal; craver określa wygląd promptu.
@@ -63,8 +63,11 @@ Edytuj `config.json`, `profile.ps1` lub `functions.ps1`, następnie:
 
 Ponowna instalacja zastępuje tylko oznaczony blok w `$PROFILE` i tworzy kolejną
 kopię zapasową. Inne fragmenty istniejącego profilu są zachowywane.
-Motyw pochodzi z aktualnie zainstalowanego Oh My Posh; ścieżka używa `current`,
-więc nie zależy od konkretnego numeru wersji.
+Motyw `craver` pochodzi z lokalnego pliku `themes/craver.omp.json`: ozdobne
+separatory zastąpiono prostymi trójkątami, a przed godziną dodano odstęp.
+Aktualizacja Oh My Posh nie nadpisuje tej poprawki. Inne motywy są wyszukiwane
+także w aktualnej instalacji Oh My Posh (`current`). Motyw bazuje na upstream
+craver; jego licencja znajduje się w `themes/LICENSE`.
 
 ```powershell
 scoop update oh-my-posh AtkinsonHyperlegibleMono-NF

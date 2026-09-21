@@ -21,7 +21,7 @@ if ($Host.Name -eq 'ConsoleHost' -and -not [Console]::IsInputRedirected -and -no
         $poshPath = Join-Path $scoopRoot 'apps/oh-my-posh/current/oh-my-posh.exe'
         if (Test-Path -LiteralPath $poshPath) { $poshCommand = Get-Command $poshPath }
     }
-    $themeRoots = @($env:POSH_THEMES_PATH, (Join-Path $scoopRoot 'apps/oh-my-posh/current/themes'))
+    $themeRoots = @((Join-Path $PSScriptRoot 'themes'), $env:POSH_THEMES_PATH, (Join-Path $scoopRoot 'apps/oh-my-posh/current/themes'))
     $themePath = $themeRoots | Where-Object { $_ } | ForEach-Object {
         Join-Path $_ ($psConfig.promptTheme + '.omp.json')
     } | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1

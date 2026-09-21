@@ -1,6 +1,7 @@
 {
   "promptTheme": "craver",
   "fontFace": "AtkynsonMono NF",
+  "fontWeight": 600,
   "fontPackage": "AtkinsonHyperlegibleMono-NF",
   "colorScheme": "Campbell"
 }

@@ -25,6 +25,7 @@ if (-not $terminal.profiles) { $terminal.profiles = @{} }
 if (-not $terminal.profiles.defaults) { $terminal.profiles.defaults = @{} }
 if (-not $terminal.profiles.defaults.font) { $terminal.profiles.defaults.font = @{} }
 $terminal.profiles.defaults.font.face = $config.fontFace
+$terminal.profiles.defaults.font.weight = $config.fontWeight
 $terminal.profiles.defaults.colorScheme = $config.colorScheme
 $pwshProfile = @($terminal.profiles.list | Where-Object {
     $_.source -eq 'Windows.Terminal.PowershellCore' -or $_.commandline -match '(?i)\bpwsh(?:\.exe)?\b'
@@ -42,6 +43,7 @@ if ($pwshProfile.Count -eq 0) {
 foreach ($entry in $pwshProfile) {
     if (-not $entry.font) { $entry.font = @{} }
     $entry.font.face = $config.fontFace
+    $entry.font.weight = $config.fontWeight
     $entry.colorScheme = $config.colorScheme
     foreach ($key in @('background', 'foreground', 'selectionBackground', 'cursorColor')) {
         $entry.Remove($key)
@@ -59,6 +61,11 @@ if (Test-Path -LiteralPath $ProfilePath) {
 }
 foreach ($file in @('profile.ps1', 'functions.ps1', 'config.json')) {
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot $file) -Destination (Join-Path $ConfigHome $file) -Force
+}
+$themesDir = Join-Path $ConfigHome 'themes'
+New-Item -ItemType Directory -Path $themesDir -Force | Out-Null
+Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'themes') -File | ForEach-Object {
+    Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $themesDir $_.Name) -Force
 }
 $start = '# >>> ps-config >>>'
 $end = '# <<< ps-config <<<'
