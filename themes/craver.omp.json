@@ -60,6 +60,41 @@
           "type": "dotnet"
         },
         {
+          "type": "node",
+          "style": "powerline",
+          "powerline_symbol": "",
+          "background": "#606060",
+          "foreground": "#D8F0C0",
+          "template": "  {{ .Full }} ",
+          "options": { "display_mode": "files" }
+        },
+        {
+          "type": "python",
+          "style": "powerline",
+          "powerline_symbol": "",
+          "background": "#646464",
+          "foreground": "#FFF0B3",
+          "template": "  {{ .Full }}{{ if .Venv }} ({{ .Venv }}){{ end }} ",
+          "options": { "display_mode": "context", "fetch_virtual_env": true }
+        },
+        {
+          "type": "kubectl",
+          "style": "powerline",
+          "powerline_symbol": "",
+          "background": "#686868",
+          "foreground": "#D8ECFF",
+          "template": " ⎈ {{ .Context }}{{ if .Namespace }}:{{ .Namespace }}{{ end }} ",
+          "options": { "parse_kubeconfig": true, "display_error": false }
+        },
+        {
+          "type": "session",
+          "style": "powerline",
+          "powerline_symbol": "",
+          "background": "#6C6C6C",
+          "foreground": "#FFE0B3",
+          "template": "{{ if .SSHSession }} SSH {{ .UserName }}@{{ .HostName }} {{ end }}"
+        },
+        {
           "background": "transparent",
           "foreground": "#808080",
           "options": {
@@ -98,6 +133,11 @@
       "type": "prompt"
     }
   ],
+  "transient_prompt": {
+    "background": "transparent",
+    "foreground": "#808080",
+    "template": "❯ "
+  },
   "console_title_template": "{{if .Root}}(Admin) {{end}}{{.Folder}}",
   "version": 4
 }

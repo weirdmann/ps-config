@@ -3,6 +3,7 @@
 Konfiguracja PowerShell 7 dla Windows: **AtkynsonMono Nerd Font**, paleta
 **Campbell**, waga fontu **SemiBold (600)**, Oh My Posh z motywem **craver**,
 Terminal-Icons, PSReadLine, listy plików przez **eza** oraz uzupełnianie przez **fzf + PSFzf + posh-git**.
+Do tego zoxide, bat, lazygit, delta, btop i skracanie poprzednich promptów.
 
 Inspiracja: [poradnik Anita Jha](https://dev.to/anitkrjha/elevate-your-windows-powershell-my-personal-customization-guide-5gf6).
 Campbell określa kolory Windows Terminal; craver określa wygląd promptu.
@@ -19,7 +20,8 @@ cd ps-config
 .\Install.ps1
 ```
 
-Instalator dodaje Scoop, jeśli go brakuje, i instaluje `oh-my-posh`, `fzf`, `eza` oraz
+Instalator dodaje Scoop, jeśli go brakuje, i instaluje `oh-my-posh`, `fzf`, `eza`,
+`zoxide`, `bat`, `lazygit` (bucket `extras`), `delta`, `btop`, `less` oraz
 `AtkinsonHyperlegibleMono-NF` z bucketu `nerd-fonts`. Nazwa rodziny fontu widoczna
 w Windows to `AtkynsonMono NF`. Moduły PSReadLine, Terminal-Icons, posh-git i PSFzf
 instaluje z PSGallery w zakresie bieżącego użytkownika. Politykę wykonywania
@@ -46,6 +48,15 @@ Po instalacji zamknij wszystkie okna Windows Terminal i uruchom go ponownie.
 - `ls`: eza, jeden wpis na wiersz, ikony, katalogi pierwsze.
 - `la`: eza, szczegółowa tabela z nagłówkami i ukrytymi plikami.
 - `tr`: eza, szczegółowe drzewo do dwóch poziomów.
+- `z nazwa`: przejście do zapamiętanego katalogu pasującego do nazwy.
+- `zi`: wybór zapamiętanego katalogu przez fzf. Zoxide uczy się odwiedzanych katalogów przy wyświetlaniu promptu.
+- `bat plik`: podgląd z kolorowaniem składni i numerami linii; `q` zamyka przewijany podgląd.
+- `lg` lub `lazygit`: interaktywny Git; `?` pokazuje pomoc aplikacji.
+- `git diff` / `git show`: podgląd przez delta z numerami linii w sesji interaktywnej.
+- `btop`: monitor zasobów i procesów; `q` zamyka aplikację.
+- F1: lista aktywnych skrótów PSReadLine.
+- Ctrl+Alt+K, następnie wybrany skrót: opis przypisanej do niego funkcji.
+- `keys`: tabela skrótów; `keys Ctrl`, `keys Alt`, `keys Shift`: filtrowanie według modyfikatora.
 - Tab: wyszukiwanie propozycji uzupełniania przez fzf (polecenia, parametry, ścieżki i Git).
 - Ctrl+R: wyszukiwanie historii przez fzf; wybór wstawia polecenie bez jego wykonania.
 - Ctrl+T: wyszukiwanie i wstawianie ścieżek przez fzf.
@@ -63,6 +74,16 @@ a `Get-ChildItem -` + Tab wybrać parametr. Fzf filtruje propozycje dostarczone
 przez PowerShell i posh-git; inne programy mogą wymagać własnych completerów.
 Jeśli brakuje fzf lub PSFzf, Tab zachowuje zwykłe menu PSReadLine.
 Integracja uruchamia się tylko w sesjach interaktywnych; Oh My Posh nadal rysuje prompt.
+Pomoc F1 dotyczy wiersza poleceń; fzf, lazygit i btop mają własne skróty wewnątrz
+aplikacji. Sam Ctrl nie jest wyzwalaczem pomocy. F1 zastępuje domyślną pomoc
+kontekstową PowerShella; `Get-Help` pozostaje dostępne. W fzf można nawigować
+Ctrl+P/Ctrl+N lub Ctrl+K/Ctrl+J, a Esc anuluje wybór.
+
+Delta jest ustawiana przez `GIT_PAGER` wyłącznie w interaktywnym profilu
+(`delta --paging=auto --line-numbers`); plik globalnej konfiguracji Git nie jest zmieniany.
+Bat i delta używają `less -R` do przewijania. `cat`/`Get-Content` oraz `cd`/`Set-Location`
+zachowują swoje funkcje. Zoxide korzysta z hooka `Set-PoshContext`, bez zastępowania
+funkcji promptu; poprzedni kod wyjścia polecenia jest zachowywany.
 
 Skróty eza przyjmują ścieżki i dodatkowe opcje, np. `la "C:\Program Files"`
 lub `ls --all`. Kolory i ikony są automatyczne: widoczne w terminalu,
@@ -94,9 +115,14 @@ craver; jego licencja znajduje się w `themes/LICENSE`.
 Kolory promptu: Windows ma pomarańczowe tło `#E88624`, godzina `#242424`,
 folder `#343434`, Git `#484848`, .NET `#5C5C5C`, status `#707070`.
 Czas wykonania ma przezroczyste tło i szary tekst oraz ikonę `#808080`.
+Segmenty Node i Python pojawiają się dla odpowiedniego projektu (Python również
+po aktywacji środowiska). Kubernetes pokazuje kontekst z lokalnego kubeconfig,
+jeżeli jest skonfigurowany, a SSH nazwę użytkownika i hosta w sesji SSH.
+Konfiguracja nie instaluje Node, Pythona, kubectl ani serwera SSH.
+Transient prompt skraca poprzedni pasek do szarego `❯` po zatwierdzeniu polecenia.
 
 ```powershell
-scoop update oh-my-posh fzf eza AtkinsonHyperlegibleMono-NF
+scoop update oh-my-posh fzf eza zoxide bat lazygit delta btop less AtkinsonHyperlegibleMono-NF
 Install-Module PSReadLine, Terminal-Icons, PSFzf, posh-git -Scope CurrentUser -Force
 ```
 

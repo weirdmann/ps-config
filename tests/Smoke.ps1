@@ -59,4 +59,15 @@ Assert $failed 'Failed commit did not throw.'
 Assert (-not $script:gitCalls.Contains('push')) 'Push ran after failed commit.'
 Remove-Item Function:\git
 Assert ([bool](whichdir git)) 'whichdir git failed.'
-Write-Host 'PASS: syntax, idempotence, backups, settings preservation, Git failure handling.'
+$script:zoxideCalls = 0
+function zoxide { $script:zoxideCalls++; $global:LASTEXITCODE = 0 }
+$global:PsConfigLastDirectory = $null
+$global:LASTEXITCODE = 17
+Update-PsConfigDirectory
+Assert ($global:LASTEXITCODE -eq 17) 'Directory hook lost the command exit code.'
+Update-PsConfigDirectory
+Assert ($script:zoxideCalls -eq 1) 'Directory hook records unchanged locations repeatedly.'
+Remove-Item Function:\zoxide
+Remove-Variable PsConfigLastDirectory -Scope Global
+$global:LASTEXITCODE = 0
+Write-Host 'PASS: syntax, idempotence, backups, settings preservation, Git failure handling, directory hook.'

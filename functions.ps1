@@ -1,3 +1,25 @@
+function Show-PromptKeys {
+    [CmdletBinding()]
+    param([Parameter(Position = 0)][ValidateSet('All', 'Ctrl', 'Alt', 'Shift')][string]$Modifier = 'All')
+    Get-PSReadLineKeyHandler -Bound | Where-Object {
+        $Modifier -eq 'All' -or $_.Key -match "(?i)(^|[+,])$Modifier\+"
+    } | Sort-Object Key | Select-Object Key, Function, Description
+}
+
+function Update-PsConfigDirectory {
+    # Use Oh My Posh's hook rather than wrapping its transient prompt function.
+    $savedExitCode = $global:LASTEXITCODE
+    try {
+        $location = Get-Location
+        if ($location.Provider.Name -eq 'FileSystem' -and $global:PsConfigLastDirectory -ne $location.ProviderPath) {
+            zoxide add -- $location.ProviderPath
+            if ($LASTEXITCODE -eq 0) { $global:PsConfigLastDirectory = $location.ProviderPath }
+        }
+    } finally {
+        $global:LASTEXITCODE = $savedExitCode
+    }
+}
+
 function Show-EzaList {
     # Forward arguments unchanged, including paths with spaces and native flags.
     eza.exe --oneline --group-directories-first --icons=auto @args

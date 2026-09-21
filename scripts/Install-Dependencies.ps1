@@ -29,7 +29,10 @@ function Invoke-Scoop {
 if (-not (Test-Path (Join-Path $scoopRoot 'buckets/nerd-fonts'))) {
     Invoke-Scoop -Arguments @('bucket', 'add', 'nerd-fonts', 'https://github.com/matthewjberger/scoop-nerd-fonts')
 }
-foreach ($package in @('oh-my-posh', 'fzf', 'eza', $config.fontPackage)) {
+if (-not (Test-Path (Join-Path $scoopRoot 'buckets/extras'))) {
+    Invoke-Scoop -Arguments @('bucket', 'add', 'extras', 'https://github.com/ScoopInstaller/Extras')
+}
+foreach ($package in @('oh-my-posh', 'fzf', 'eza', 'zoxide', 'bat', 'lazygit', 'delta', 'btop', 'less', $config.fontPackage)) {
     if (-not (Test-Path (Join-Path $scoopRoot "apps/$package/current"))) {
         Invoke-Scoop -Arguments @('install', $package)
     }
