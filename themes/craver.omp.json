@@ -92,7 +92,7 @@
           "powerline_symbol": "",
           "background": "#6C6C6C",
           "foreground": "#FFE0B3",
-          "template": "{{ if .SSHSession }} SSH {{ .UserName }}@{{ .HostName }} {{ end }}"
+          "template": " {{ if .SSHSession }}SSH {{ .UserName }}@{{ end }}{{ .HostName }} "
         },
         {
           "background": "transparent",

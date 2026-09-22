@@ -12,3 +12,6 @@ jobs:
       - name: Test installer without changing user settings
         shell: pwsh
         run: pwsh -NoProfile -File ./tests/Smoke.ps1
+      - name: Test MOTD formatting and silent script mode
+        shell: pwsh
+        run: pwsh -NoProfile -File ./tests/Motd.ps1

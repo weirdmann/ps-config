@@ -1,3 +1,66 @@
+# === MOTD: rozpoznawanie sesji i wyświetlanie powitania ===
+function Test-PsConfigInteractiveSession {
+    param([string[]]$StartupArguments = ([Environment]::GetCommandLineArgs() | Select-Object -Skip 1))
+    # Sama obecność konsoli nie wystarcza: -File i -Command mogą uruchamiać automat.
+    if ($Host.Name -ne 'ConsoleHost' -or [Console]::IsInputRedirected -or [Console]::IsOutputRedirected) {
+        return $false
+    }
+    $noExit = $false
+    $runsCommand = $false
+    for ($index = 0; $index -lt $StartupArguments.Count; $index++) {
+        $argument = $StartupArguments[$index]
+        if ($argument.Length -ge 5 -and '-noninteractive'.StartsWith($argument, [StringComparison]::OrdinalIgnoreCase)) { return $false }
+        if ($argument -match '^-(noe|noex|noexi|noexit)$') { $noExit = $true }
+        # Opcje takie jak -ExecutionPolicy i -WorkingDirectory mają własną wartość.
+        if ($argument -match '^-(ex\w*|ep|wo\w*|wd|windowstyle|w|configuration\w*|config|settings\w*|custompipe\w*|input\w*|inp|output\w*|o)$') {
+            $index++
+            continue
+        }
+        if ($argument -match '^-(c|co|com\w*|cwa|e|ec|en\w*|f|fi\w*)$' -or -not $argument.StartsWith('-')) {
+            $runsCommand = $true
+            break # Dalej jest treść polecenia lub argumenty skryptu, nie opcje powłoki.
+        }
+    }
+    return (-not $runsCommand -or $noExit)
+}
+
+function Show-Motd {
+    <# .SYNOPSIS
+    Wyświetla powitanie ponownie. Ustawienia są na początku profile.ps1.
+    #>
+    if (-not (Test-PsConfigInteractiveSession) -or -not $global:PsConfigMotd.Enabled) { return }
+    $settings = $global:PsConfigMotd
+
+    # Odczytaj szerokość okna, nie zakładając, że każdy host udostępnia konsolę.
+    $width = 0
+    try { $width = [Console]::WindowWidth } catch { }
+    if ($width -le 0) {
+        try { $width = $Host.UI.RawUI.WindowSize.Width } catch { }
+    }
+    try {
+        $bufferWidth = [Console]::BufferWidth
+        if ($bufferWidth -gt 0 -and $width -gt 0) { $width = [Math]::Min($width, $bufferWidth) }
+    } catch { }
+
+    # Write-Host wyświetla tekst, nie dodając obiektów do zwykłego potoku poleceń.
+    # Nie zmieniamy globalnego kodowania ani kultury używanej przez inne programy.
+    $date = (Get-Date).ToString($settings.DateFormat, [Globalization.CultureInfo]::GetCultureInfo('pl-PL'))
+    Write-Host
+    Write-Host "Cześć, $($settings.Name)!  $($settings.Stars)" -ForegroundColor $settings.GreetingColor
+    Write-Host "Dzisiaj: $date" -ForegroundColor $settings.DetailColor
+    Write-Host "Komputer: $([Environment]::MachineName)" -ForegroundColor $settings.DetailColor
+
+    # Zostaw ostatnią kolumnę wolną, aby linia nie zawinęła się automatycznie.
+    # Bez wiarygodnej szerokości pomiń linię, zamiast zgadywać rozmiar terminala.
+    if ($width -gt 1) {
+        $lineCharacter = [string]$settings.LineCharacter
+        if ($lineCharacter -notmatch '^[\x20-\x7E\u2500-\u257F]$') { $lineCharacter = '-' }
+        Write-Host ($lineCharacter * ($width - 1)) -ForegroundColor $settings.LineColor
+    }
+    $global:PsConfigMotdShown = $true
+}
+
+# === Pomoc do skrótów klawiszowych ===
 function Show-PromptKeys {
     [CmdletBinding()]
     param([Parameter(Position = 0)][ValidateSet('All', 'Ctrl', 'Alt', 'Shift')][string]$Modifier = 'All')
@@ -6,8 +69,9 @@ function Show-PromptKeys {
     } | Sort-Object Key | Select-Object Key, Function, Description
 }
 
+# === Zapamiętywanie katalogów przez zoxide ===
 function Update-PsConfigDirectory {
-    # Use Oh My Posh's hook rather than wrapping its transient prompt function.
+    # Korzystamy z wywołania przez Oh My Posh, aby nie zakłócać transient prompt.
     $savedExitCode = $global:LASTEXITCODE
     try {
         $location = Get-Location
@@ -16,12 +80,14 @@ function Update-PsConfigDirectory {
             if ($LASTEXITCODE -eq 0) { $global:PsConfigLastDirectory = $location.ProviderPath }
         }
     } finally {
+        # Zapamiętywanie katalogu nie może zmieniać wyniku ostatniego polecenia.
         $global:LASTEXITCODE = $savedExitCode
     }
 }
 
+# === Listy plików — tutaj zmienisz opcje ls, la i tr ===
 function Show-EzaList {
-    # Forward arguments unchanged, including paths with spaces and native flags.
+    # @args przekazuje opcje i ścieżki ze spacjami bez zmian do eza.
     eza.exe --oneline --group-directories-first --icons=auto @args
 }
 
@@ -33,9 +99,10 @@ function Show-EzaTree {
     eza.exe --tree --level=2 --long --binary --group-directories-first --icons=auto @args
 }
 
+# === Skróty Git — przed użyciem sprawdź git status ===
 function gcom {
     <# .SYNOPSIS
-    Stage changes in the current directory and commit. Stops on any Git error.
+    Dodaje zmiany z bieżącego katalogu i tworzy commit. Błąd przerywa operację.
     #>
     [CmdletBinding()]
     param([Parameter(Mandatory, Position = 0)][ValidateNotNullOrEmpty()][string]$Message)
@@ -47,7 +114,7 @@ function gcom {
 
 function lazyg {
     <# .SYNOPSIS
-    Stage, commit, and push to the configured upstream. A failed commit prevents push.
+    Dodaje zmiany, tworzy commit i wysyła go. Nieudany commit blokuje push.
     #>
     [CmdletBinding()]
     param([Parameter(Mandatory, Position = 0)][ValidateNotNullOrEmpty()][string]$Message)
@@ -56,6 +123,7 @@ function lazyg {
     if ($LASTEXITCODE -ne 0) { throw 'git push failed.' }
 }
 
+# === Wyszukiwanie poleceń i ich lokalizacji ===
 function which {
     [CmdletBinding()]
     param([Parameter(Mandatory, Position = 0)][string]$Name)

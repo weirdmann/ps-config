@@ -46,6 +46,8 @@ Po instalacji zamknij wszystkie okna Windows Terminal i uruchom go ponownie.
 
 ## Używanie
 
+- Na start sesji pojawia się MOTD: imię, polska data, nazwa komputera i gwiazdki.
+- `Show-Motd`: ponowne wyświetlenie powitania (bez przeładowywania całego profilu).
 - `ls`: eza, jeden wpis na wiersz, ikony, katalogi pierwsze.
 - `la`: eza, szczegółowa tabela z nagłówkami i ukrytymi plikami.
 - `tr`: eza, szczegółowe drzewo do dwóch poziomów.
@@ -101,6 +103,18 @@ a nie parametry `Get-ChildItem`.
 
 ## Zmiany i aktualizacje
 
+Imię i wygląd powitania zmienisz w sekcji **1. Powitanie MOTD** na początku
+`profile.ps1` (`PsConfigMotd`): kolory, gwiazdki, format daty i znak linii.
+`Enabled = $false` wyłącza MOTD. Pliki zapisuj jako UTF-8.
+W zainstalowanej konfiguracji jest to `%USERPROFILE%\.config\ps-config\profile.ps1`.
+Po zmianie wykonaj `. $PROFILE`, a potem `Show-Motd`. Samo ponowne wczytanie
+profilu nie powiela powitania już wyświetlonego w danej sesji.
+
+MOTD pomija przekierowane wejście/wyjście, `-NonInteractive` oraz uruchomienia
+`-File`/`-Command` bez `-NoExit`. Nie zmienia kultury ani kodowania innych poleceń.
+Linia zajmuje szerokość terminala minus jedną kolumnę; gdy nie można odczytać
+szerokości, powitanie wyświetla się bez linii, aby nie ryzykować zawijania.
+
 Edytuj `config.json`, `profile.ps1` lub `functions.ps1`, następnie:
 
 ```powershell
@@ -120,7 +134,8 @@ folder `#343434`, Git `#484848`, .NET `#5C5C5C`, status `#707070`.
 Czas wykonania ma przezroczyste tło i szary tekst oraz ikonę `#808080`.
 Segmenty Node i Python pojawiają się dla odpowiedniego projektu (Python również
 po aktywacji środowiska). Kubernetes pokazuje kontekst z lokalnego kubeconfig,
-jeżeli jest skonfigurowany, a SSH nazwę użytkownika i hosta w sesji SSH.
+jeżeli jest skonfigurowany. Nazwa hosta jest widoczna także lokalnie;
+w sesji SSH poprzedza ją oznaczenie SSH i nazwa użytkownika.
 Konfiguracja nie instaluje Node, Pythona, kubectl ani serwera SSH.
 Transient prompt skraca poprzedni pasek do szarego `❯` po zatwierdzeniu polecenia.
 Po aktualizacji wczytaj profil ponownie (`. $PROFILE`) lub otwórz nową kartę.
@@ -146,11 +161,14 @@ osobno przez Scoop i `Uninstall-Module`.
 
 ```powershell
 pwsh -NoProfile -File .\tests\Smoke.ps1
+pwsh -NoProfile -File .\tests\Motd.ps1
 ```
 
 Testy działają w `.local/`, nie zmieniają prawdziwego profilu ani terminala.
 Sprawdzają składnię, dwukrotną instalację z kopią zapasową i zachowanie istniejących
 ustawień oraz przerwanie `lazyg` po nieudanym commicie.
+Test MOTD sprawdza polskie znaki, datę, hostname, długość linii i brak powitania
+w sesji skryptowej. Uruchomiony w terminalu sprawdza również opcje startowe powłoki.
 
 Integrację promptu sprawdź osobno w interaktywnym terminalu z zainstalowanymi
 zależnościami: `pwsh -NoProfile -File .\tests\Prompt.ps1`.

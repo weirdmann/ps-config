@@ -4,6 +4,10 @@ $root = Split-Path -Parent $PSScriptRoot
 function Assert($Condition, [string]$Message) {
     if (-not $Condition) { throw $Message }
 }
+$theme = Get-Content -LiteralPath (Join-Path $root 'themes/craver.omp.json') -Raw | ConvertFrom-Json
+$sessionSegment = @($theme.blocks.segments | Where-Object type -EQ 'session')
+Assert ($sessionSegment.Count -eq 1) 'Expected one session segment for local and SSH hostnames.'
+Assert ($sessionSegment[0].template -eq ' {{ if .SSHSession }}SSH {{ .UserName }}@{{ end }}{{ .HostName }} ') 'Hostname should be visible outside SSH sessions too.'
 Get-ChildItem -LiteralPath $root -Recurse -Filter '*.ps1' | Where-Object FullName -NotMatch '[\\/]\.local[\\/]' | ForEach-Object {
     $tokens = $null
     $errors = $null
