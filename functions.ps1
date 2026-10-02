@@ -99,6 +99,89 @@ function Show-EzaTree {
     eza.exe --tree --level=2 --long --binary --group-directories-first --icons=auto @args
 }
 
+# === Hyper-V: adresy maszyn, wynik zawsze w bieżącym oknie ===
+function gvmip {
+    [CmdletBinding()]
+    param()
+    $query = {
+        Get-VM -ErrorAction Stop |
+            Where-Object State -eq 'Running' |
+            Get-VMNetworkAdapter -ErrorAction Stop |
+            Select-Object VMName, SwitchName, MacAddress, @{
+                Name = 'IPv4'
+                Expression = {
+                    ($_.IPAddresses | Where-Object {
+                        $_ -match '^\d+\.' -and $_ -notlike '169.254.*'
+                    }) -join ', '
+                }
+            }
+    }
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    try {
+        $principal = [Security.Principal.WindowsPrincipal]::new($identity)
+        $isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    } finally {
+        $identity.Dispose()
+    }
+    if ($isAdmin) {
+        & $query | Format-Table -AutoSize
+        return
+    }
+
+    # RunAs nie obsługuje przekierowania stdout. Przekazujemy więc same dane
+    # przez jednorazowy plik, a tabelę formatujemy dopiero w oknie wywołującym.
+    $tempDir = Join-Path ([IO.Path]::GetTempPath()) ('ps-config-gvmip-' + [guid]::NewGuid())
+    $resultPath = Join-Path $tempDir 'result.clixml'
+    try {
+        New-Item -ItemType Directory -Path $tempDir -ErrorAction Stop | Out-Null
+        $worker = {
+            param([string]$ResultPath, [scriptblock]$Query)
+            $ErrorActionPreference = 'Stop'
+            try {
+                $result = @{ Rows = @(& $Query); Error = $null }
+            } catch {
+                $result = @{ Rows = @(); Error = $_.Exception.Message }
+            }
+            $result | Export-Clixml -LiteralPath $ResultPath -Depth 5
+            if ($result.Error) { exit 1 }
+        }
+        $code = "& { $worker } -ResultPath '$($resultPath.Replace("'", "''"))' -Query { $query }"
+        $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($code))
+        # UAC pozostaje widoczne. Proces roboczy nie otwiera dodatkowego okna
+        # i kończy się po zapisie wyniku; -Wait czeka na zakończenie pracy.
+        $process = Start-Process -FilePath (Join-Path $PSHOME 'pwsh.exe') -Verb RunAs `
+            -WindowStyle Hidden -Wait -PassThru -ErrorAction Stop `
+            -ArgumentList '-NoLogo', '-NoProfile', '-NonInteractive', '-EncodedCommand', $encoded
+        try {
+            if (-not (Test-Path -LiteralPath $resultPath)) {
+                throw "Proces administratora nie zwrócił wyniku (kod $($process.ExitCode))."
+            }
+            $result = Import-Clixml -LiteralPath $resultPath -ErrorAction Stop
+            if ($result.Error) { throw $result.Error }
+            if ($process.ExitCode -ne 0) { throw "Proces administratora zakończył się kodem $($process.ExitCode)." }
+            $result.Rows | Format-Table VMName, SwitchName, MacAddress, IPv4 -AutoSize
+        } finally {
+            $process.Dispose()
+        }
+    } catch {
+        $cause = $_.Exception
+        while ($cause.InnerException) { $cause = $cause.InnerException }
+        if ($cause -is [ComponentModel.Win32Exception] -and $cause.NativeErrorCode -eq 1223) {
+            Write-Warning 'Anulowano zgodę UAC — nie pobrano danych maszyn.'
+        } else {
+            Write-Error "gvmip: $($_.Exception.Message)"
+        }
+    } finally {
+        # Usuwamy wyłącznie własny plik i pusty katalog, także po anulowaniu UAC.
+        try {
+            [IO.File]::Delete($resultPath)
+            if ([IO.Directory]::Exists($tempDir)) { [IO.Directory]::Delete($tempDir, $false) }
+        } catch {
+            Write-Warning "Nie udało się usunąć plików tymczasowych gvmip: $tempDir"
+        }
+    }
+}
+
 # === Skróty Git — przed użyciem sprawdź git status ===
 function gcom {
     <# .SYNOPSIS

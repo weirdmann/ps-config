@@ -15,3 +15,6 @@ jobs:
       - name: Test MOTD formatting and silent script mode
         shell: pwsh
         run: pwsh -NoProfile -File ./tests/Motd.ps1
+      - name: Test VM output transport without elevation
+        shell: pwsh
+        run: pwsh -NoProfile -File ./tests/VmIp.ps1

@@ -70,6 +70,11 @@ Po instalacji zamknij wszystkie okna Windows Terminal i uruchom go ponownie.
 - `lazyg "opis"`: jak `gcom`, a po udanym commicie push do skonfigurowanego upstreamu.
 - `which git`: definicja lub ścieżka polecenia.
 - `whichdir git`: katalog pliku wykonywalnego lub modułu; funkcja bez pliku zgłasza błąd.
+- `gvmip`: tabela kart sieciowych uruchomionych maszyn Hyper-V, bez adresów IPv6
+  i IPv4 link-local. W zwykłym oknie prosi o zgodę UAC; ukryty proces administratora
+  pobiera dane i kończy pracę, a tabela pojawia się w bieżącym oknie.
+  W oknie administratora działa bezpośrednio. Wymaga dostępnego modułu Hyper-V.
+  Jednorazowy plik wyniku jest usuwany po odczycie, także przy błędach/anulowaniu.
 
 W menu fzf wpisz fragment nazwy, wybierz strzałkami i zatwierdź Enterem;
 Esc anuluje wybór. Na przykład `git switch ` + Tab pozwala wybrać gałąź,
