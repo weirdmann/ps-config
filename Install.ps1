@@ -53,7 +53,7 @@ foreach ($entry in $pwshProfile) {
 }
 $terminal.defaultProfile = $pwshProfile[0].guid
 
-if (-not $SkipDependencies) { & (Join-Path $PSScriptRoot 'scripts/Install-Dependencies.ps1') }
+if (-not $SkipDependencies) { & (Join-Path $PSScriptRoot 'scripts/Install-Dependencies.ps1') -ConfigHome $ConfigHome }
 New-Item -ItemType Directory -Path $ConfigHome -Force | Out-Null
 $backupDir = Join-Path $ConfigHome ('backups/' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff'))
 New-Item -ItemType Directory -Path $backupDir -Force | Out-Null

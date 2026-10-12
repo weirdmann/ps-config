@@ -25,6 +25,8 @@ Instalator dodaje Scoop, jeśli go brakuje, i instaluje `oh-my-posh`, `fzf`, `ez
 `AtkinsonHyperlegibleMono-NF` z bucketu `nerd-fonts`. Nazwa rodziny fontu widoczna
 w Windows to `AtkynsonMono NF`. Moduły PSReadLine, Terminal-Icons, posh-git i PSFzf
 instaluje z PSGallery w zakresie bieżącego użytkownika tylko wtedy, gdy ich brakuje.
+Następnie kopiuje moduły do `%USERPROFILE%\.config\ps-config\modules`, poza OneDrive,
+i zapisuje ich dokładne ścieżki w `modules.json`. Oryginalne instalacje pozostają dostępne.
 Aktualizacje są osobnym krokiem opisanym niżej. Politykę wykonywania
 zmienia na `RemoteSigned` dla użytkownika tylko wtedy, gdy istniejąca blokuje Scoop.
 
@@ -84,6 +86,9 @@ Jeśli brakuje fzf lub PSFzf, Tab zachowuje zwykłe menu PSReadLine.
 Integracja uruchamia się tylko w sesjach interaktywnych; Oh My Posh nadal rysuje prompt.
 Terminal-Icons obsługuje `Get-ChildItem`/`gci`, a posh-git uzupełnia polecenia Git;
 nie zastępują odpowiednio eza ani segmentu Git w Oh My Posh.
+Terminal-Icons ładuje się dopiero przy pierwszym `Get-ChildItem`/`gci` w sesji.
+To pierwsze wywołanie może potrwać trochę dłużej. Tymczasowy proxy zachowuje
+parametry cmdletu, dynamiczne opcje systemu plików i obiekty w potoku, po czym się usuwa.
 Pomoc F1 dotyczy wiersza poleceń; fzf, lazygit i btop mają własne skróty wewnątrz
 aplikacji. Sam Ctrl nie jest wyzwalaczem pomocy. F1 zastępuje domyślną pomoc
 kontekstową PowerShella; `Get-Help` pozostaje dostępne. W fzf można nawigować
@@ -144,15 +149,24 @@ w sesji SSH poprzedza ją oznaczenie SSH i nazwa użytkownika.
 Konfiguracja nie instaluje Node, Pythona, kubectl ani serwera SSH.
 Transient prompt skraca poprzedni pasek do szarego `❯` po zatwierdzeniu polecenia.
 Po aktualizacji wczytaj profil ponownie (`. $PROFILE`) lub otwórz nową kartę.
-Profil inicjalizuje Oh My Posh z `--print`, aby nie używać starego cache inicjalizacji,
-i usuwa poprzedni moduł przed ponownym załadowaniem. Dzięki temu zmiany motywu
+Profil tworzy własny cache inicjalizacji Oh My Posh z `--print` w katalogu `.cache`.
+Treść motywu, wersja i metadane programu docelowego (także za shimem Scoop) oraz
+wersja PowerShell decydują o odświeżeniu cache. Identyfikator każdej sesji pozostaje unikalny.
+Profil usuwa poprzedni moduł przed ponownym załadowaniem. Dzięki temu zmiany motywu
 (w tym włączenie transient prompt) obowiązują również w już otwartej sesji.
 Paski pozostawione wcześniej w historii terminala nie zmienią się wstecz.
 
 ```powershell
 scoop update oh-my-posh fzf eza zoxide bat lazygit delta btop less AtkinsonHyperlegibleMono-NF
 Install-Module PSReadLine, Terminal-Icons, PSFzf, posh-git -Scope CurrentUser -Force
+pwsh -NoProfile -File .\scripts\Sync-Modules.ps1
 ```
+
+`Sync-Modules.ps1` odświeża lokalne kopie z najnowszych zainstalowanych wersji,
+indeks ścieżek i proxy dla ikon. Uruchamiaj go w nowym procesie `-NoProfile`, jak wyżej,
+aby nie ładować modułów w trakcie ich kopiowania. Potem otwórz nową kartę terminala.
+Ten krok nie zmienia fontu, palety ani ustawień MOTD. Dla innego katalogu instalacji
+podaj `-ConfigHome`. Przy instalacji z `-SkipDependencies` lokalne kopie nie są odświeżane.
 
 ## Cofnięcie konfiguracji
 
@@ -167,6 +181,7 @@ osobno przez Scoop i `Uninstall-Module`.
 ```powershell
 pwsh -NoProfile -File .\tests\Smoke.ps1
 pwsh -NoProfile -File .\tests\Motd.ps1
+pwsh -NoProfile -File .\tests\StartupCache.ps1
 ```
 
 Testy działają w `.local/`, nie zmieniają prawdziwego profilu ani terminala.
@@ -178,6 +193,8 @@ w sesji skryptowej. Uruchomiony w terminalu sprawdza również opcje startowe po
 Integrację promptu sprawdź osobno w interaktywnym terminalu z zainstalowanymi
 zależnościami: `pwsh -NoProfile -File .\tests\Prompt.ps1`.
 Test kontroluje włączenie transient prompt i skróty po trzykrotnym wczytaniu profilu.
+Opcja `-ProfilePath "$env:USERPROFILE\.config\ps-config\profile.ps1"` sprawdza
+zainstalowaną kopię, także lokalne ścieżki modułów i opóźnione ładowanie ikon.
 
 Dokumentacja: [Oh My Posh](https://ohmyposh.dev/docs/installation/windows),
 [Nerd Fonts](https://www.nerdfonts.com/font-downloads),

@@ -49,4 +49,20 @@ foreach ($attempt in 1..3) {
         }
     }
 }
+if ([IO.File]::Exists((Join-Path (Split-Path -Parent $ProfilePath) 'modules.json'))) {
+    foreach ($name in @('PSReadLine', 'posh-git', 'PSFzf')) {
+        if ((Get-Module -Name $name).ModuleBase -like '*OneDrive*') { throw "$name loaded from OneDrive." }
+    }
+    if (Get-Module -Name Terminal-Icons) { throw 'Icons loaded before Get-ChildItem was used.' }
+    $directory = Split-Path -Parent $ProfilePath
+    $expected = @(Microsoft.PowerShell.Management\Get-ChildItem -LiteralPath $directory -File -Filter '*.ps1')
+    $actual = @(gci -LiteralPath $directory -File -Filter '*.ps1')
+    if (@(Compare-Object $expected.FullName $actual.FullName).Count) { throw 'Lazy Get-ChildItem changed file results.' }
+    if ($actual[0] -isnot [IO.FileInfo]) { throw 'Get-ChildItem no longer returns filesystem objects.' }
+    if (-not (Get-Module -Name Terminal-Icons)) { throw 'Icons not loaded on first directory listing.' }
+    if ((Get-Command Get-ChildItem).CommandType -ne 'Cmdlet') { throw 'Lazy wrapper did not remove itself.' }
+    $piped = @($directory | Get-ChildItem -File -Filter '*.ps1')
+    if ($piped.Count -ne $expected.Count) { throw 'Directory pipeline changed after lazy import.' }
+    Write-Host 'PASS: local module paths, deferred icons, FileSystem parameters, filesystem objects and pipeline.'
+}
 Write-Host 'PASS: transient, single prompt module, PSReadLine options, shortcuts, eza and zoxide across three profile loads.'

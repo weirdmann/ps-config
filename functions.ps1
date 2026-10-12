@@ -1,3 +1,70 @@
+# === Szybki start: lokalne moduły i cache inicjalizacji promptu ===
+function Import-PsConfigModule {
+    param([Parameter(Mandatory)][string]$Name)
+    # Indeks tworzony przez Sync-Modules.ps1 pozwala ominąć przeszukiwanie OneDrive.
+    $path = $global:PsConfigModulePaths[$Name]
+    try {
+        if ($path -and [IO.File]::Exists($path)) {
+            Import-Module -Name $path -Global -ErrorAction Stop
+        } else {
+            # Zgodność z konfiguracją bez przygotowanych jeszcze lokalnych kopii.
+            Import-Module -Name $Name -Global -ErrorAction Stop
+        }
+        return $true
+    } catch {
+        if ($_.FullyQualifiedErrorId -notlike 'Modules_ModuleNotFound*') {
+            Write-Warning "Nie można załadować modułu ${Name}: $($_.Exception.Message)"
+        }
+        return $false
+    }
+}
+
+function Get-PsConfigPoshInit {
+    param(
+        [Parameter(Mandatory)][string]$Executable,
+        [Parameter(Mandatory)][string]$ThemePath,
+        [Parameter(Mandatory)][string]$CacheDirectory
+    )
+    # Scoop może wskazywać na niezmienny shim.exe; wersję odczytujemy z programu docelowego.
+    $binaryPath = $Executable
+    $shimPath = [IO.Path]::ChangeExtension($Executable, '.shim')
+    if ([IO.File]::Exists($shimPath)) {
+        $shim = [IO.File]::ReadAllText($shimPath)
+        if ($shim -match '(?m)^path\s*=\s*"([^"]+)"' -and [IO.File]::Exists($Matches[1])) {
+            $binaryPath = $Matches[1]
+        }
+    }
+    $binary = Get-Item -LiteralPath $binaryPath
+    # Wersja, rozmiar i data pliku wykrywają także aktualizację pod linkiem Scoop/current.
+    $fingerprint = @(
+        'ps-config-init-v1', $Executable, $binary.FullName, $binary.VersionInfo.ProductVersion,
+        $binary.Length, $binary.LastWriteTimeUtc.Ticks, $PSVersionTable.PSVersion.ToString(),
+        [IO.Path]::GetFullPath($ThemePath), [IO.File]::ReadAllText($ThemePath)
+    ) -join "`n"
+    $hash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($fingerprint)))
+    $cachePath = Join-Path $CacheDirectory "omp-$hash.ps1"
+    if ([IO.File]::Exists($cachePath)) { return [IO.File]::ReadAllText($cachePath) }
+
+    $initialization = & $Executable init pwsh --config $ThemePath --print | Out-String
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($initialization)) {
+        throw 'Nie udało się wygenerować inicjalizacji Oh My Posh.'
+    }
+    # Każda sesja musi mieć własny identyfikator, także przy wspólnym cache.
+    $initialization = $initialization -replace '(\$env:POSH_SESSION_ID\s*=\s*)"[^"]+"', '$1([guid]::NewGuid().ToString())'
+    $tempPath = Join-Path $CacheDirectory ("omp-$hash-" + [guid]::NewGuid() + '.tmp')
+    try {
+        [IO.Directory]::CreateDirectory($CacheDirectory) | Out-Null
+        [IO.File]::WriteAllText($tempPath, $initialization, [Text.UTF8Encoding]::new($false))
+        # Atomowy zapis: równoczesne otwarcie kart nie odczyta częściowego pliku.
+        [IO.File]::Move($tempPath, $cachePath, $true)
+    } catch {
+        Write-Warning "Nie można zapisać cache promptu: $($_.Exception.Message)"
+    } finally {
+        if ([IO.File]::Exists($tempPath)) { [IO.File]::Delete($tempPath) }
+    }
+    return $initialization
+}
+
 # === MOTD: rozpoznawanie sesji i wyświetlanie powitania ===
 function Test-PsConfigInteractiveSession {
     param([string[]]$StartupArguments = ([Environment]::GetCommandLineArgs() | Select-Object -Skip 1))

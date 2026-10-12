@@ -1,6 +1,6 @@
 #requires -Version 7.2
 [CmdletBinding()]
-param()
+param([string]$ConfigHome = (Join-Path $env:USERPROFILE '.config/ps-config'))
 $ErrorActionPreference = 'Stop'
 $config = Get-Content (Join-Path $PSScriptRoot '../config.json') -Raw | ConvertFrom-Json
 $scoopRoot = if ($env:SCOOP) { $env:SCOOP } else { Join-Path $env:USERPROFILE 'scoop' }
@@ -50,4 +50,5 @@ foreach ($module in @('PSReadLine', 'Terminal-Icons', 'posh-git', 'PSFzf')) {
         Install-Module -Name $module -Repository PSGallery -Scope CurrentUser -Force -AllowClobber
     }
 }
+& (Join-Path $PSScriptRoot 'Sync-Modules.ps1') -ConfigHome $ConfigHome
 Write-Host 'Dependencies installed for the current user.'

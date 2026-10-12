@@ -17,8 +17,21 @@ $global:PsConfigMotd = @{
 
 # === 3. Ustawienia terminala — pomijane przy przekierowaniu wejścia/wyjścia ===
 if ($Host.Name -eq 'ConsoleHost' -and -not [Console]::IsInputRedirected -and -not [Console]::IsOutputRedirected) {
+    # Lokalny indeks modułów odświeżysz skryptem scripts/Sync-Modules.ps1.
+    $global:PsConfigModulePaths = @{}
+    $moduleIndex = Join-Path $PSScriptRoot 'modules.json'
+    if ([IO.File]::Exists($moduleIndex)) {
+        $localModules = [IO.File]::ReadAllText($moduleIndex) | ConvertFrom-Json -AsHashtable
+        foreach ($moduleName in $localModules.Keys) {
+            $global:PsConfigModulePaths[$moduleName] = Join-Path $PSScriptRoot $localModules[$moduleName]
+        }
+        $localModuleRoot = Join-Path $PSScriptRoot 'modules'
+        if (($env:PSModulePath -split ';') -notcontains $localModuleRoot) {
+            $env:PSModulePath = $localModuleRoot + ';' + $env:PSModulePath
+        }
+    }
     # Historia podpowiada polecenia w liście; Windows zachowuje znane skróty edycji.
-    Import-Module PSReadLine
+    $null = Import-PsConfigModule -Name PSReadLine
     Set-PSReadLineOption -PredictionSource History -PredictionViewStyle ListView -EditMode Windows -HistorySearchCursorMovesToEnd
     # Strzałki szukają po wpisanym początku; F1 i Ctrl+Alt+K pomagają poznać skróty.
     Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
@@ -52,15 +65,10 @@ if ($Host.Name -eq 'ConsoleHost' -and -not [Console]::IsInputRedirected -and -no
         $env:BAT_PAGER = 'less -R'
     }
     # === 5. Ikony i uzupełnianie poleceń ===
-    # Terminal-Icons ozdabia gci, a posh-git dostarcza propozycje dla poleceń Git.
-    foreach ($moduleName in @('Terminal-Icons', 'posh-git')) {
-        if (Get-Module -ListAvailable -Name $moduleName) {
-            Import-Module $moduleName
-        }
-    }
-    if ((Get-Command fzf -ErrorAction SilentlyContinue) -and (Get-Module -ListAvailable -Name PSFzf)) {
+    # Posh-git dostarcza propozycje dla poleceń Git. Ikony wczytujemy później.
+    $null = Import-PsConfigModule -Name posh-git
+    if ((Get-Command fzf -ErrorAction SilentlyContinue) -and (Import-PsConfigModule -Name PSFzf)) {
         # Ctrl+R: historia, Ctrl+T: ścieżki, Alt+C: katalog; Tab filtruje uzupełnienia.
-        Import-Module PSFzf
         Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r' -PSReadlineChordSetLocation 'Alt+c'
         Set-PSReadLineKeyHandler -Key Tab -BriefDescription 'FzfTabCompletion' -Description 'Wybierz uzupelnienie przez fzf' -ScriptBlock { Invoke-FzfTabCompletion }
     } else {
@@ -84,15 +92,22 @@ if ($Host.Name -eq 'ConsoleHost' -and -not [Console]::IsInputRedirected -and -no
     if ($poshCommand -and $themePath) {
         # Usuń stary moduł, żeby . $PROFILE nie dublowało obsługi promptu.
         Get-Module -Name oh-my-posh-core | Remove-Module -Force
-        # --print omija stary cache i od razu włącza aktualne opcje, m.in. transient.
-        & $poshCommand.Source init pwsh --config $themePath --print | Out-String | Invoke-Expression
+        # Cache powstaje z --print i odświeża się po zmianie motywu lub programu.
+        Get-PsConfigPoshInit -Executable $poshCommand.Source -ThemePath $themePath -CacheDirectory (Join-Path $PSScriptRoot '.cache') | Invoke-Expression
         if (Get-Command zoxide -ErrorAction SilentlyContinue) {
             # Zoxide uczy się katalogów po narysowaniu paska, bez zastępowania promptu.
             zoxide init powershell --hook none | Out-String | Invoke-Expression
             Set-Alias -Name Set-PoshContext -Value Update-PsConfigDirectory -Scope Global -Force
         }
     }
-    Remove-Variable psConfig, moduleName, scoopRoot, scoopShims, poshCommand, poshPath, themeRoots, themePath -ErrorAction SilentlyContinue
+    # Terminal-Icons potrzebujemy dopiero przy Get-ChildItem/gci. Wrapper zachowuje
+    # parametry cmdletu i usuwa się po pierwszym wywołaniu; ls/la/tr nadal używają eza.
+    $lazyIconsPath = Join-Path $PSScriptRoot 'lazy-terminal-icons.ps1'
+    if (-not (Get-Module -Name Terminal-Icons)) {
+        if ([IO.File]::Exists($lazyIconsPath)) { . $lazyIconsPath }
+        else { $null = Import-PsConfigModule -Name Terminal-Icons }
+    }
+    Remove-Variable psConfig, moduleName, moduleIndex, localModules, localModuleRoot, lazyIconsPath, scoopRoot, scoopShims, poshCommand, poshPath, themeRoots, themePath -ErrorAction SilentlyContinue
 
     # === 7. Powitanie na start ===
     # Tylko raz w sesji; ponownie wyświetlisz je poleceniem Show-Motd.
