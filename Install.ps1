@@ -41,6 +41,8 @@ if ($pwshProfile.Count -eq 0) {
     $pwshProfile = @($newProfile)
 }
 foreach ($entry in $pwshProfile) {
+    # Korekta kontrastu rozjaśnia separatory Powerline niezależnie od tła segmentów.
+    $entry.adjustIndistinguishableColors = 'never'
     # Inherit shared appearance instead of keeping a second copy per profile.
     if ($entry.font) {
         $entry.font.Remove('face')

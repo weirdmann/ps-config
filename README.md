@@ -41,6 +41,9 @@ Windows Terminal otrzymuje font i Campbell w ustawieniach domyślnych;
 profile PowerShell 7 dziedziczą je bez powielania. PowerShell 7 staje się domyślnym profilem. Nadpisania
 kolorów w tych profilach są usuwane, aby obowiązywała paleta Campbell. Rozmiar
 fontu, przezroczystość, skróty i pozostałe profile zachowują swoje ustawienia.
+W profilach PowerShell 7 instalator ustawia `adjustIndistinguishableColors` na
+`never`: automatyczna korekta kontrastu może rozjaśniać strzałki Powerline,
+przez co nie pasują do tła sąsiednich segmentów.
 JSON jest ponownie formatowany, a komentarze pomijane; oryginał jest w kopii.
 Instalator nie zmienia systemowej domyślnej aplikacji terminalowej.
 

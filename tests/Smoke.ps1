@@ -22,10 +22,10 @@ Set-Content $testProfile '# existing custom profile'
 $original = @{
     copyOnSelect = $true
     profiles = @{
-        defaults = @{ font = @{ size = 15 }; opacity = 80 }
+        defaults = @{ font = @{ size = 15 }; opacity = 80; adjustIndistinguishableColors = 'always' }
         list = @(
-            @{ guid = '{test-pwsh}'; source = 'Windows.Terminal.PowershellCore'; background = '#112233'; colorScheme = 'Other'; font = @{ size = 12; face = 'Old'; weight = 400 } },
-            @{ guid = '{test-cmd}'; name = 'CMD'; colorScheme = 'Other' },
+            @{ guid = '{test-pwsh}'; source = 'Windows.Terminal.PowershellCore'; background = '#112233'; colorScheme = 'Other'; font = @{ size = 12; face = 'Old'; weight = 400 }; adjustIndistinguishableColors = 'always' },
+            @{ guid = '{test-cmd}'; name = 'CMD'; colorScheme = 'Other'; adjustIndistinguishableColors = 'always' },
             @{ guid = '{test-pwsh-empty-font}'; commandline = 'pwsh.exe'; font = @{ face = 'Old'; weight = 400 } }
         )
     }
@@ -47,6 +47,11 @@ Assert ($firstProfile.Contains('# existing custom profile')) 'Existing profile l
 $updated = $firstTerminal | ConvertFrom-Json -AsHashtable
 Assert ($updated.copyOnSelect -and $updated.profiles.defaults.opacity -eq 80) 'Unrelated settings changed.'
 Assert ($updated.profiles.list[1].colorScheme -eq 'Other') 'Other profile changed.'
+Assert ($updated.profiles.defaults.adjustIndistinguishableColors -eq 'always') 'Shared contrast setting changed.'
+Assert ($updated.profiles.list[1].adjustIndistinguishableColors -eq 'always') 'Other profile contrast setting changed.'
+foreach ($index in @(0, 2)) {
+    Assert ($updated.profiles.list[$index].adjustIndistinguishableColors -eq 'never') 'Powerline separators may be recolored by the terminal.'
+}
 Assert ($updated.profiles.list[0].font.size -eq 12) 'Existing font size changed.'
 Assert ($updated.profiles.defaults.font.face -eq 'AtkynsonMono NF') 'Wrong default font.'
 Assert ($updated.profiles.defaults.font.weight -eq 600) 'Wrong default font weight.'
